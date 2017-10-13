@@ -1,8 +1,20 @@
 # JQuery-cookie
-onload是页面加载，onbeforeunload监听浏览器关闭。所以当页面关闭的时候触发的事件需调用onbeforeunload。 而清空页面cookie的jquery代码如下：
+onload是页面加载，onbeforeunload监听浏览器关闭。所以当页面关闭的时候触发的事件需调用onbeforeunload。
+通过对比jquery.cookie.js库的removeCookie方法，发现这个方法中是将cookie删除是将值置为‘’, 但当设置过期时间为-1时，即令当前cookie失效。重新获取的cookie中不会存在该key值。而单独调用removeCookie方法，由于未设置path:“/”，默认情况只有设置了cookie的网页才能读取该cookie。而我们需要删除的是一个设置了有效路径的cookie，所以当需要删除全部cookie时，需要同时设置path和expires属性。
+原始jquery.cookie.js中的removeCookie实现如下：
+$.removeCookie = function (key, options) {
+		if ($.cookie(key) === undefined) {
+			return false;
+		}
+		// Must not alter options, thus extending a fresh object...
+		$.cookie(key, '', $.extend({}, options, { expires: -1 }));
+		return !$.cookie(key);
+	};
+清空jsp页面cookie的jquery代码如下：
     var cookies = $.cookie(); 
     for (var cookie in cookies) { 
       $.removeCookie(cookie); 
+      $.cookie(cookie, '', {expires: -1, path: "/"});
     }
 另外，onbeforeunload事件监听： 
 　　说明：目前三大主流浏览器中firefox和IE都支持onbeforeunload事件,opera尚未支持。 
